@@ -3,7 +3,7 @@ def main():
     lines = [line.rstrip() for line in f if line != "\n"]
     f.close()
 
-    rockmap = []
+    rockpoints = []
 
     for line in lines:
         coords = parse_line(line)
@@ -11,25 +11,79 @@ def main():
         for pair in pairs:
             path_coords = calc_path_coords(pair)
             for coord in path_coords:
-                if not (coord in rockmap):
-                    rockmap.append(coord)
+                if not (coord in rockpoints):
+                    rockpoints.append(coord)
 
-    max_x = max([c[0] for c in rockmap])
-    min_x = min([c[0] for c in rockmap])
-    max_y = max([c[1] for c in rockmap])
-    min_y = min([c[1] for c in rockmap])
+    max_x = max([c[0] for c in rockpoints])
+    min_x = min([c[0] for c in rockpoints])
+    max_y = max([c[1] for c in rockpoints])
+    min_y = 1
 
+    keep_sanding = True
+
+    sandpoints = []
+
+    # Reduce this to go one by one after a certain point
+    pause_grain = 1000
+
+    # Change these to restrict window printed out
+    first_row = 1
+    last_row = 10000
+
+    grains = 0
+    while keep_sanding:
+        grains += 1
+        keep_sanding = drop_grain(rockpoints, sandpoints, min_x, max_x, min_y, max_y)
+        if grains > pause_grain:
+            display(rockpoints, sandpoints, min_x, max_x, min_y, max_y, None, first_row, last_row)
+            input("Press Enter to continue...")
+
+    display(rockpoints, sandpoints, min_x, max_x, min_y, max_y)
+
+    print(f"{grains - 1} grains!")
+
+
+def display(rockpoints, sandpoints, min_x, max_x, min_y, max_y, grain=None, first_row=1, last_row=1000):
     display = []
-    for y in range(min_y, max_y + 1):
-        line = ""
+    for y in range(max(min_y, first_row), min(max_y + 1, last_row)):
+        line = f"{y:03d} "
         for x in range(min_x, max_x + 1):
             char = "."
-            if (x, y) in rockmap:
+            if (x, y) in rockpoints:
                 char = "#"
+            if (x, y) in sandpoints:
+                char = "o"
+            if (x, y) == grain:
+                char = "O"
             line += char
         display.append(line)
 
     print("\n".join(display))
+
+
+def drop_grain(rockpoints, sandpoints, min_x, max_x, min_y, max_y):
+    x = 500
+    y = 0
+
+    blocked = False
+    escaped = False
+
+    while not (blocked or escaped):
+        # display(rockpoints, sandpoints, min_x, max_x, min_y, max_y, (x, y))
+        # input("Press Enter to continue...")
+        if x < min_x or x > max_x or y > max_y:
+            escaped = True
+
+        tests = [(x, y + 1), (x - 1, y + 1), (x + 1, y + 1)]
+        for test in tests:
+            if test not in rockpoints and test not in sandpoints:
+                x, y = test
+                break
+        else:
+            blocked = True
+            sandpoints.append((x, y))
+
+    return not escaped
 
 
 def parse_line(line):
