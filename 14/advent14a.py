@@ -88,7 +88,7 @@ def drop_grain(rockpoints, sandpoints, min_x, max_x, min_y, max_y):
 
 def parse_line(line):
     coords = list(line.split(" -> "))
-    return [(c2[0], c2[1]) for c2 in [c1.split(",") for c1 in coords]]
+    return [(int(c2[0]), int(c2[1])) for c2 in [c1.split(",") for c1 in coords]]
 
 
 def calc_path_coords(pair):
